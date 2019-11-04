@@ -1,122 +1,212 @@
 import Foundation
 
-public struct Heap<Element> {
-    
-    // MARK: - Initialization
-    public init(elements: [Element], priorityFunction: @escaping (Element, Element) -> Bool) {
-        self.elements = elements
-        self.priorityFunction = priorityFunction
-        buildHeap()
-    }
-    
-    private mutating func buildHeap() {
-        for index in (0 ..< count / 2).reversed() {
-            siftDown(at: index)
-        }
-    }
+public struct Heap<T> {
     
     // MARK: - Properties
     
-    /// The internal array that holds the data.
-    fileprivate var elements: [Element]
-    /// The method used to decide the priority.
-    fileprivate var priorityFunction: (Element, Element) -> Bool
+    /// The array that stores the heap's nodes.
+    private var nodes = [T]()
+    
+    /// Determines how to compare two nodes in the heap.
+    /// Use `>` for a max heap, or `<` for a min heap or provide
+    /// a comparing method if the heap is made of custom elements.
+    private var orderCriteria: (T, T) -> Bool
+    
+    // MARK: - Initializers
+    
+    /// Creates an empty heap.
+    /// - Parameter sort: The sorting function to use.
+    public init(sort: @escaping (T, T) -> Bool) {
+        self.orderCriteria = sort
+    }
+    
+    /// Creates a heap from an array, where the order of the elements in the array is irrelevant.
+    /// The elements are inserted in the heap in the order determined by the sorting function.
+    /// - Parameters:
+    ///   - array: The array to create the heap from.
+    ///   - sort: The sorting function to use.
+    public init(array: [T], sort: @escaping (T, T) -> Bool) {
+        self.orderCriteria = sort
+        configureHeap(from: array)
+    }
+    
+    /// Configures the heap from an array, in a bottom-up manner.
+    /// Runs at about `O(n)`.
+    /// - Parameter array: The array to create the heap from.
+    private mutating func configureHeap(from array: [T]) {
+        nodes = array
+        for i in stride(from: (nodes.count / 2 - 1), through: 0, by: -1) {
+            shiftDown(i)
+        }
+    }
+    
+    // MARK: - Computed properties
     
     /// Boolean value indicating whether or not the heap is empty.
-    public var isEmpty: Bool {
-        elements.isEmpty
+    var isEmpty: Bool {
+        nodes.isEmpty
     }
     
-    /// The number of items in the heap.
-    public var count: Int {
-        elements.count
+    /// The total number of nodes in the heap.
+    var count: Int {
+        nodes.count
     }
     
-    // MARK: - Functions
+    // MARK: - Indexing & peeking
     
-    /// The first element in the heap`.
-    public func peek() -> Element? {
-        elements.first
+    /// Returns the index of the parent of the element at index `i`.
+    /// The element at index `0` is the root of the tree and has no parent.
+    /// - Parameter i: The index of the element to find the parent index for.
+    internal func parentIndex(ofIndex i: Int) -> Int {
+        (i - 1) / 2
     }
     
-    // TODO: Documentation
-    private func isRoot(_ index: Int) -> Bool {
-        index == 0
+    /// Returns the index of the left child of the element at index `i`.
+    /// Note that this index can be greater than the heap size, in which case there is no left child.
+    /// - Parameter i: The index of the element to find the left child index for.
+    internal func leftChildIndex(ofIndex i: Int) -> Int {
+        return 2 * i + 1
     }
     
-    private func leftChildIndex(of index: Int) -> Int {
-        (2 * index) + 1
+    /// Returns the index of the right child of the elemet at index `i`.
+    /// Note that this index can be greater than the heap size, in which case there is no right child.
+    /// - Parameter i: The index of the element to find the right child index for.
+    internal func rightChildIndex(ofIndex i: Int) -> Int {
+        return 2 * i + 2
     }
     
-    private func rightChildIndex(of index: Int) -> Int {
-        (2 * index) + 2
+    /// Returns the maximum value in the heap for a max heap or the minumum value in the heap for a min heap.
+    public func peek() -> T? {
+        nodes.first
     }
     
-    private func parentIndex(of index: Int) -> Int {
-        (index - 1) / 2
+    // MARK: - Editing heap
+    
+    /// Adds an ew value to the heap. This reorders the heap so that the max heap or min heap property still holds.
+    /// Runs at `O(log n)`.
+    /// - Parameter value: The value to add to the heap.
+    public mutating func insert(_ value: T) {
+        nodes.append(value)
+        shiftUp(nodes.count - 1)
     }
     
-    // MARK: - Priority (wrappers)
+    /// Adds a sequence of values to the heap. This reorders the heap so that the max heap or min heap property still holds.
+    /// - Parameter sequence: The sequence to add to the heap.
+    public mutating func insert<S: Sequence>(_ sequence: S) where S.Iterator.Element == T {
+        for value in sequence {
+            insert(value)
+        }
+    }
     
-    /// Wrapper for the `priorityFunction`. It takes two indices and determines whether or not the first index has a higher priority.
+    /// Replaces an element of the heap with given value. This reorders the heap so that the max heap or min heap property still holds.
     /// - Parameters:
-    ///   - firstIndex: The first index.
-    ///   - secondIndex: The second index.
-    private func isHigherPriority(at firstIndex: Int, than secondIndex: Int) -> Bool {
-        priorityFunction(elements[firstIndex], elements[secondIndex])
+    ///   - i: The index of the value to replace.
+    ///   - value: The value to replace the element with.
+    public mutating func replace(index i: Int, value: T) {
+        guard i < nodes.count else { return }
+        remove(at: i)
+        insert(value)
     }
     
-    /// Check if both the parent and the child have valid indices and return the index with the highest priority.
-    /// - Parameters:
-    ///   - parentIndex: The parent index.
-    ///   - childIndex: The child index.
-    private func highestPriorityIndex(of parentIndex: Int, and childIndex: Int) -> Int {
-        guard childIndex < count && isHigherPriority(at: childIndex, than: parentIndex) else { return parentIndex }
-        return childIndex
+    /// Removes the root node from the heap. This reorders the heap so that the max heap or min heap property still holds.
+    /// This runs at `O(log n)`.
+    @discardableResult
+    public mutating func remove() -> T? {
+        guard !nodes.isEmpty else { return nil }
+        
+        if nodes.count == 1 {
+            return nodes.removeLast()
+        } else {
+            // Use the alst node to replace the first one, the nfix the heap
+            // by shifting this new first node into its proper position.
+            let value = nodes[0]
+            nodes[0] = nodes.removeLast()
+            shiftDown(0)
+            return value
+        }
     }
     
-    /// Assumes the parent index is valid and returns the highest priority for the parent, left child and right child.
-    /// - Parameter parent: The parent index.
-    private func highestPriorityIndex(for parent: Int) -> Int {
-        highestPriorityIndex(of: highestPriorityIndex(of: parent, and: leftChildIndex(of: parent)), and: rightChildIndex(of: parent))
+    /// Removes a node from the heap.
+    /// Runs at `O(log n)`.
+    /// - Parameter index: The index of the node to remove.
+    @discardableResult
+    public mutating func remove(at index: Int) -> T? {
+        guard index < nodes.count else { return nil }
+        
+        let size = nodes.count - 1
+        if index != size {
+            nodes.swapAt(index, size)
+            shiftDown(from: index, until: size)
+            shiftUp(index)
+        }
+        return nodes.removeLast()
     }
     
-    // MARK: - Mutating functions
+    // MARK: - Shifting
     
-    /// Swap the elements at given indices.
-    /// - Parameters:
-    ///   - firstIndex: The index of the first value to swap.
-    ///   - secondIndex: The index of the second value to swap.
-    private mutating func swapElements(at firstIndex: Int, with secondIndex: Int) {
-        guard firstIndex != secondIndex else { return }
-        elements.swapAt(firstIndex, secondIndex)
+    /// Takes a child node and looks at its parents. If a parent is not larger (max heap) or a parent is not smaller (min heap), we exchange them.
+    /// - Parameter index: The index of the child to shift up.
+    internal mutating func shiftUp(_ index: Int) {
+        var childIndex = index
+        let child = nodes[childIndex]
+        var parentIndex = self.parentIndex(ofIndex: childIndex)
+        
+        while childIndex > 0 && orderCriteria(child, nodes[parentIndex]) {
+            nodes[childIndex] = nodes[parentIndex]
+            childIndex = parentIndex
+            parentIndex = self.parentIndex(ofIndex: childIndex)
+        }
+        
+        nodes[childIndex] = child
     }
     
-    private mutating func siftUp(at index: Int) {
-        let parent = parentIndex(of: index)
-        guard !isRoot(index), isHigherPriority(at: index, than: parent) else { return }
-        swapElements(at: index, with: parent)
-        siftUp(at: parent)
+    internal mutating func shiftDown(from index: Int, until endIndex: Int) {
+        let leftChildIndex = self.leftChildIndex(ofIndex: index)
+        let rightChildIndex = leftChildIndex + 1
+        
+        // Figure out which comes fisrt if we order them by the sort function:
+        // the paretn, the left child or the right child. If the paretn comes first,
+        // we're done. If not, that element is out of place and we make it 'float' down
+        // the tree, until the heap property is restored.
+        var first = index
+        if leftChildIndex < endIndex && orderCriteria(nodes[leftChildIndex], nodes[first]) {
+            first = leftChildIndex
+        }
+        if rightChildIndex < endIndex && orderCriteria(nodes[rightChildIndex], nodes[first]) {
+            first = rightChildIndex
+        }
+        if first == index { return }
+        
+        nodes.swapAt(index, first)
+        shiftDown(from: first, until: endIndex)
     }
     
-    private mutating func siftDown(at index: Int) {
-        let childIndex = highestPriorityIndex(for: index)
-        if index == childIndex { return }
-        swapElements(at: index, with: childIndex)
-        siftDown(at: childIndex)
+    internal mutating func shiftDown(_ index: Int) {
+        shiftDown(from: index, until: nodes.count)
     }
     
-    mutating func enqueue(_ element: Element) {
-        elements.append(element)
-        siftUp(at: count - 1)
+}
+
+// MARK: - Searching
+
+public extension Heap where T: Equatable {
+    
+    /// Get the index of a node in the heap.
+    /// Runs at `O(n)`.
+    /// - Parameter node: The node to find the index for.
+    func index(of node: T) -> Int? {
+        nodes.index(where: { $0 == node })
     }
     
-    mutating func dequeue() -> Element? {
-        guard !isEmpty else { return nil }
-        swapElements(at: 0, with: count - 1)
-        let element = elements.removeLast()
-        if !isEmpty { siftDown(at: 0) }
-        return element
+    /// Removes the first occurence of a node from the heap.
+    /// Runs at `O(log n)`.
+    /// - Parameter node: The node to remove.
+    @discardableResult
+    mutating func remove(node: T) -> T? {
+        if let index = index(of: node) {
+            return remove(at: index)
+        }
+        return nil
     }
     
 }
