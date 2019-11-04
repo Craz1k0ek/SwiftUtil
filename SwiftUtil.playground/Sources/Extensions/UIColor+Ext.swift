@@ -39,6 +39,25 @@ public extension UIColor {
         }
     }
     
+    /// Initialize a UIColor for both light and dark appearances.
+    /// - Note: This uses the `iOS 13` dark mode, meaning, the functionality for the dark mode is only available for `>= iOS 13`.
+    /// - Parameter light: The light appearance `UIColor`.
+    /// - Parameter dark: The dark appearance `UIColor`.
+    convenience init(light: UIColor, dark: UIColor) {
+        if #available(iOS 13.0, *) {
+            self.init { (traits) -> UIColor in
+                switch traits.userInterfaceStyle {
+                case .dark:
+                    return dark
+                default:
+                    return light
+                }
+            }
+        } else {
+            self.init(cgColor: light.cgColor)
+        }
+    }
+    
     /// Retrieve the red, green, blue and alpha component for a color.
     var rgba: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat) {
         var red: CGFloat    = 0
