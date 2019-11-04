@@ -195,7 +195,7 @@ public extension Heap where T: Equatable {
     /// Runs at `O(n)`.
     /// - Parameter node: The node to find the index for.
     func index(of node: T) -> Int? {
-        nodes.index(where: { $0 == node })
+        nodes.firstIndex(where: { $0 == node })
     }
     
     /// Removes the first occurence of a node from the heap.

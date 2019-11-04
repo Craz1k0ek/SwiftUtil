@@ -11,6 +11,8 @@ public struct Queue<T> {
     /// The index of the current head.
     fileprivate var head = 0
     
+    // MARK: - Computed properties
+    
     /// Boolean value indicating whether or not the queue is empty.
     public var isEmpty: Bool {
         array.count == 0
@@ -38,23 +40,28 @@ public struct Queue<T> {
     /// - Note: The dequeuing is made more efficient by soft deleting elements from the internal data.
     ///         Meaning the queue now has an efficiency of `O(1)` instead of `O(n)`.
     public mutating func dequeue() -> T? {
-        guard head < array.count, let element = array[head] else { return nil }
+        guard let element = array[guarded: head] else { return nil }
         
         array[head] = nil
         head += 1
         
-        
-        /*
-         If we do not periodically remove the empty spots, the queue will keep growing in size.
-         Instead, if more than 25% of the array is inused, we remove the wasted space.
-         */
+        // If we do not periodically remove the empty spots, the queue will keep growing in size.
+        // Instead, if more than 25% of the array is inused, we remove the wasted space.
         let percentage = Double(head) / Double(array.count)
         if array.count > 50 && percentage > 0.25 {
             array.removeFirst(head)
             head = 0
         }
-        
         return element
+    }
+    
+}
+
+extension Array {
+    
+    subscript(guarded idx: Int) -> Element? {
+        guard (startIndex ..< endIndex).contains(idx) else { return nil }
+        return self[idx]
     }
     
 }
