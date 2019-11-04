@@ -32,6 +32,7 @@ public struct Queue<T> {
     // MARK: - Functions
     
     /// Add an element to the queue.
+    /// - Parameter element: The element to add.
     public mutating func enqueue(_ element: T) {
         array.append(element)
     }

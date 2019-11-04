@@ -102,10 +102,12 @@ public struct Heap<T> {
     /// - Parameters:
     ///   - i: The index of the value to replace.
     ///   - value: The value to replace the element with.
-    public mutating func replace(index i: Int, value: T) {
-        guard i < nodes.count else { return }
-        remove(at: i)
+    @discardableResult
+    public mutating func replace(index i: Int, value: T) -> T? {
+        guard i < nodes.count else { return nil }
+        let removed = remove(at: i)
         insert(value)
+        return removed
     }
     
     /// Removes the root node from the heap. This reorders the heap so that the max heap or min heap property still holds.
@@ -117,7 +119,7 @@ public struct Heap<T> {
         if nodes.count == 1 {
             return nodes.removeLast()
         } else {
-            // Use the alst node to replace the first one, the nfix the heap
+            // Use the last node to replace the first one, then fix the heap
             // by shifting this new first node into its proper position.
             let value = nodes[0]
             nodes[0] = nodes.removeLast()
