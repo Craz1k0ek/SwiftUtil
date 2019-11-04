@@ -2,6 +2,9 @@ import Foundation
 
 /// The stack is an array with limited functionality. You can only append items to the `top` of the stack and remove elements from the `top`.
 public struct Stack<T> {
+    public init() {}
+    
+    // MARK: - Properties
     
     /// The internal array that holds the data.
     fileprivate var array = [T]()
@@ -21,6 +24,8 @@ public struct Stack<T> {
     public var top: T? {
         array.last
     }
+    
+    // MARK: - Functions
     
     /// Push a new element onto the stack.
     /// - Parameter element: The element to push to the stack.
