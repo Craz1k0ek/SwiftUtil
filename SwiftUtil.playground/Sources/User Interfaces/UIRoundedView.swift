@@ -6,10 +6,12 @@
 
 import UIKit
 
-@IBDesignable class UIRoundedView: UIShadowView {
+@IBDesignable
+public class UIRoundedView: UIShadowView {
     
     /// The radius to use when drawing rounded corners for the layer’s background.
-    @IBInspectable public var cornerRadius: CGFloat = 0.0 {
+    @IBInspectable
+    public var cornerRadius: CGFloat = 0.0 {
         didSet {
             layer.cornerRadius = cornerRadius
         }

@@ -6,7 +6,7 @@
 
 import Foundation
 
-extension String {
+public extension String {
     
     /// Indication if a `String` contains only hexadecimal characters.
     var isHexString: Bool {
@@ -16,7 +16,7 @@ extension String {
     
 }
 
-extension StringProtocol where Self: RangeReplaceableCollection {
+public extension StringProtocol where Self: RangeReplaceableCollection {
     private mutating func inserting(separator: String, every n: Int) {
         indices.reversed().forEach {
             if $0 != startIndex {

@@ -6,17 +6,20 @@
 
 import UIKit
 
-@IBDesignable class UIPatternView: UIView {
+@IBDesignable
+public class UIPatternView: UIView {
     
     /// The `UIImage` that should be used as a background pattern.
-    @IBInspectable public var patternImage: UIImage? = nil {
+    @IBInspectable
+    public var patternImage: UIImage? = nil {
         didSet {
             backgroundColor = patternImage != nil ? UIColor(patternImage: patternImage!) : .clear
         }
     }
     
     /// The scale of the background image.
-    @IBInspectable public var patternScale: CGFloat = 1.0 {
+    @IBInspectable
+    public var patternScale: CGFloat = 1.0 {
         didSet {
             if patternImage == nil { return }
             
@@ -34,3 +37,4 @@ import UIKit
     }
 
 }
+
