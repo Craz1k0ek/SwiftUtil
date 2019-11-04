@@ -43,12 +43,12 @@ public struct Heap<T> {
     // MARK: - Computed properties
     
     /// Boolean value indicating whether or not the heap is empty.
-    var isEmpty: Bool {
+    public var isEmpty: Bool {
         nodes.isEmpty
     }
     
     /// The total number of nodes in the heap.
-    var count: Int {
+    public var count: Int {
         nodes.count
     }
     
@@ -183,6 +183,18 @@ public struct Heap<T> {
     
     internal mutating func shiftDown(_ index: Int) {
         shiftDown(from: index, until: nodes.count)
+    }
+    
+}
+
+extension Heap: Sequence, IteratorProtocol {
+    
+    public mutating func next() -> T? {
+        if count == 0 {
+            return nil
+        } else {
+            return self.remove()
+        }
     }
     
 }

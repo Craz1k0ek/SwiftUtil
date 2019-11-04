@@ -57,6 +57,18 @@ public struct Queue<T> {
     
 }
 
+extension Queue: Sequence, IteratorProtocol {
+    
+    public mutating func next() -> T? {
+        if count == 0 {
+            return nil
+        } else {
+            return self.dequeue()
+        }
+    }
+    
+}
+
 extension Array {
     
     subscript(guarded idx: Int) -> Element? {

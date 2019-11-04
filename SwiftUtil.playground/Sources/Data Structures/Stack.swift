@@ -39,3 +39,15 @@ public struct Stack<T> {
     }
     
 }
+
+extension Stack: Sequence, IteratorProtocol {
+    
+    public mutating func next() -> T? {
+        if count == 0 {
+            return nil
+        } else {
+            return self.pop()
+        }
+    }
+    
+}
