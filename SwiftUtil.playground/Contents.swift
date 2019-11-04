@@ -11,6 +11,19 @@ class MyViewController : UIViewController {
 // Present the view controller in the Live View window
 PlaygroundPage.current.liveView = MyViewController()
 
+// Check whether or not the system is 32bit or 64bit. Create Mersenne Twister for that layout.
+if MemoryLayout<Int>.size  == 4 {
+    var mt = MTRandom32()
+    for i in 0 ..< 5 {
+        print(mt.next())
+    }
+} else {
+    var mt = MTRandom64()
+    for i in 0 ..< 5 {
+        print(mt.next())
+    }
+}
+
 var stack = Stack<Int>()
 for _ in 0 ..< 25 {
     stack.push(Int.random(in: -25 ... 25))
