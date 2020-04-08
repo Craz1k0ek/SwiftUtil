@@ -7,7 +7,7 @@ In this folder you will find security implementations that might be useful.
 HKDF is a HMAC based expand-and-extract key derivation function.
 You can use it to derive keys of a fixed size used for other cryptographic operations.
 
-_Example 1_
+#### _Example 1_
 In this example, a key is derived from a salt and a shared secret.
 There is no extra information added when expanding the key.
 
@@ -27,7 +27,7 @@ do {
 }
 ```
 
-_Example 2_
+#### _Example 2_
 In this example, a key is derived from a salt and a shared secret.
 There is some extra information added when expanding the key.
 We also specify that we want 64 bytes of output key material.
