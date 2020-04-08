@@ -23,8 +23,8 @@ public struct HKDF<H> where H: HashFunction {
     /// The extracted pseudorandom key.
     private let prk: Data
     
-    public init(salt: Data, key: Data) {
-        prk = HKDF.extract(salt: salt, input: key)
+    public init(key: Data, salt: Data) {
+        prk = HKDF.extract(key: key, salt: salt)
     }
     
     /// Extract a pseudorandom key using HMAC with the
@@ -40,8 +40,8 @@ public struct HKDF<H> where H: HashFunction {
     ///   - salt: The random generated salt.
     ///   - input: The original key.
     /// - Returns: The extracted pseudorandom key.
-    static private func extract(salt: Data = Data(repeating: 0, count: H.Digest.byteCount), input: Data) -> Data {
-        HMAC<H>.authenticationCode(for: input, using: SymmetricKey(data: salt)).withUnsafeBytes({ Data($0) })
+    static private func extract(key: Data, salt: Data = Data(repeating: 0, count: H.Digest.byteCount)) -> Data {
+        HMAC<H>.authenticationCode(for: key, using: SymmetricKey(data: salt)).withUnsafeBytes({ Data($0) })
     }
     
     /// Expand the pseudorandom key and info into
